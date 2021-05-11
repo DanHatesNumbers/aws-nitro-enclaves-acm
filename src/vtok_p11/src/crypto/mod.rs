@@ -364,11 +364,22 @@ fn config_evp_pkey_ctx(pctx: *mut ffi::EVP_PKEY_CTX, mech: &Mechanism) -> Result
         Mechanism::RsaX509 => ffi::RSA_NO_PADDING,
         Mechanism::RsaPkcs(_) => ffi::RSA_PKCS1_PADDING,
         Mechanism::RsaPkcsPss(_, _) => ffi::RSA_PKCS1_PSS_PADDING,
+        Mechanism::RsaPkcsOaep(_, _) => ffi::RSA_PKCS1_OAEP_PADDING,
         Mechanism::Ecdsa(_) => return Ok(()),
     };
     let rc = unsafe { ffi::EVP_PKEY_CTX_set_rsa_padding(pctx, padding) };
     if rc != 1 {
         return Err(Error::PkeyCtxCtl);
+    }
+
+    if let Mechanism::RsaPkcsOaep(Some(params)) = mech {
+        let evp_md_hash = mech_type_to_evp_md(params.hashAlg)?;
+        // Using EVP_PKEY_CTX_set_rsa_oaep_md over EVP_PKEY_CTX_set_rsa_mgf1_md on recommendation
+        // of OpenSSL code comments
+        let rc = unsafe { ffi::EVP_PKEY_CTX_set_rsa_oaep_md(pctx, evp_md_hash) };
+        if rc != 1 {
+            return Err(Error::PkeyCtxCtl);
+        }
     }
 
     if let Mechanism::RsaPkcsPss(_, Some(params)) = mech {

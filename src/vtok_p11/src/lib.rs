@@ -52,7 +52,7 @@ mod defs {
     pub const TOKEN_FIRMWARE_VERSION: pkcs11::CK_VERSION = ck_version!(0, 1);
     pub const TOKEN_UTC_TIME: &str = "";
 
-    pub const TOKEN_MECH_LIST: [Mechanism; 24] = [
+    pub const TOKEN_MECH_LIST: [Mechanism; 25] = [
         Mechanism::Digest(MechDigest::Sha1),
         Mechanism::Digest(MechDigest::Sha224),
         Mechanism::Digest(MechDigest::Sha256),
@@ -64,6 +64,7 @@ mod defs {
         Mechanism::RsaPkcs(Some(MechDigest::Sha256)),
         Mechanism::RsaPkcs(Some(MechDigest::Sha384)),
         Mechanism::RsaPkcs(Some(MechDigest::Sha512)),
+        Mechanism::RsaPkcsOaep(None),
         Mechanism::RsaPkcsPss(None, None),
         Mechanism::RsaPkcsPss(Some(MechDigest::Sha1), None),
         Mechanism::RsaPkcsPss(Some(MechDigest::Sha224), None),

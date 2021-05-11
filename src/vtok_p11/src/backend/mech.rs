@@ -23,6 +23,7 @@ pub enum MechDigest {
 pub enum Mechanism {
     Digest(MechDigest),
     RsaPkcs(Option<MechDigest>),
+    RsaPkcsOaep(Option<pkcs11::CK_RSA_PKCS_OAEP_PARAMS>),
     RsaPkcsPss(Option<MechDigest>, Option<pkcs11::CK_RSA_PKCS_PSS_PARAMS>),
     RsaX509,
     Ecdsa(Option<MechDigest>),
@@ -53,6 +54,11 @@ impl Mechanism {
             pkcs11::CKM_SHA256_RSA_PKCS => Self::RsaPkcs(Some(MechDigest::Sha256)),
             pkcs11::CKM_SHA384_RSA_PKCS => Self::RsaPkcs(Some(MechDigest::Sha384)),
             pkcs11::CKM_SHA512_RSA_PKCS => Self::RsaPkcs(Some(MechDigest::Sha512)),
+            pkcs11::CKM_RSA_PKCS_OAEP => Self::RsaPkcsOaep(
+                // Safe because Self::RsaPkcsOaep defines the correct params struct type
+                // (i.e. CK_RSA_PKCS_OAEP_PARAMS).
+                unsafe { raw_mech.params() }.map_err(Error::CkRaw)?,
+            ),
             pkcs11::CKM_RSA_PKCS_PSS => Self::RsaPkcsPss(
                 None,
                 // Safe because Self::RsaPkcsPss defines the correct params struct type
@@ -128,6 +134,7 @@ impl Mechanism {
                 Some(MechDigest::Sha384) => pkcs11::CKM_SHA384_RSA_PKCS,
                 Some(MechDigest::Sha512) => pkcs11::CKM_SHA512_RSA_PKCS,
             },
+            Self::RsaPkcsOaep(_) => pkcs11::CKM_RSA_PKCS_OAEP,
             Self::RsaPkcsPss(digest, _) => match digest {
                 None => pkcs11::CKM_RSA_PKCS_PSS,
                 Some(MechDigest::Sha1) => pkcs11::CKM_SHA1_RSA_PKCS_PSS,
@@ -151,7 +158,7 @@ impl Mechanism {
     pub fn ck_info(&self) -> pkcs11::CK_MECHANISM_INFO {
         let (min_bits, max_bits) = match self {
             Self::Digest(_) => (0, 0),
-            Self::RsaPkcs(_) | Self::RsaPkcsPss(_, _) | Self::RsaX509 => {
+            Self::RsaPkcs(_) | Self::RsaPkcsOaep(_) | Self::RsaPkcsPss(_, _) | Self::RsaX509 => {
                 (Self::RSA_MIN_KEY_BITS, Self::RSA_MAX_KEY_BITS)
             }
             Self::Ecdsa(_) => (Self::EC_MIN_KEY_BITS, Self::EC_MAX_KEY_BITS),
@@ -178,6 +185,7 @@ impl Mechanism {
                 }
                 // Multi-part CKM_RSA_PKCS has sign/verify only
                 Self::RsaPkcs(Some(_)) => pkcs11::CKF_SIGN | pkcs11::CKF_VERIFY,
+                Self::RsaPkcsOaep(_) => pkcs11::CKF_ENCRYPT | pkcs11::CKF_DECRYPT,
                 Self::RsaPkcsPss(_, _) => pkcs11::CKF_SIGN | pkcs11::CKF_VERIFY,
                 Self::RsaX509 => {
                     pkcs11::CKF_SIGN
@@ -201,6 +209,7 @@ impl Mechanism {
             | Self::RsaPkcsPss(ref digest, _)
             | Self::Ecdsa(ref digest) => digest.is_some(),
             _ => false,
+            Self::RsaPkcsOaep(_) => false
         }
     }
 }

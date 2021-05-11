@@ -18,6 +18,7 @@ pub const EVP_MAX_MD_SIZE: usize = 64;
 /// RSA padding types
 pub const RSA_PKCS1_PADDING: c_int = 1;
 pub const RSA_NO_PADDING: c_int = 3;
+pub const RSA_PKCS1_OAEP_PADDING: c_int = 4;
 pub const RSA_PKCS1_PSS_PADDING: c_int = 6;
 
 /// EVP_PKEY types
@@ -259,6 +260,7 @@ extern "C" {
     pub fn EVP_PKEY_CTX_set_rsa_padding(ctx: *mut EVP_PKEY_CTX, pad: c_int) -> c_int;
     pub fn EVP_PKEY_CTX_set_rsa_mgf1_md(ctx: *mut EVP_PKEY_CTX, md: *const EVP_MD) -> c_int;
     pub fn EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx: *mut EVP_PKEY_CTX, len: c_int) -> c_int;
+    pub fn EVP_PKEY_CTX_set_rsa_oaep_md(ctx: *mut EVP_PKEY_CTX, md: *const EVP_MD) -> c_int;
     pub fn RSA_get0_key(
         rsa: *const RSA,
         out_n: *mut *const BIGNUM,

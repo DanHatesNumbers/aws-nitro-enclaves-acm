@@ -243,7 +243,7 @@ impl Session {
     ) -> Result<crypto::Pkey> {
         let key_obj = self.db.object(key_handle).ok_or(Error::KeyHandleInvalid)?;
         match mech {
-            Mechanism::RsaX509 | Mechanism::RsaPkcs(..) | Mechanism::RsaPkcsPss(..) => {
+            Mechanism::RsaX509 | Mechanism::RsaPkcs(..) | Mechanism::RsaPkcsOaep(..) | Mechanism::RsaPkcsPss(..) => {
                 if let ObjectKind::RsaPrivateKey(pem) = key_obj.kind() {
                     crypto::Pkey::from_private_pem(pem.as_str()).map_err(Error::CryptoError)
                 } else {
@@ -269,7 +269,7 @@ impl Session {
     ) -> Result<crypto::Pkey> {
         let key_obj = self.db.object(key_handle).ok_or(Error::KeyHandleInvalid)?;
         match mech {
-            Mechanism::RsaX509 | Mechanism::RsaPkcs(..) | Mechanism::RsaPkcsPss(..) => {
+            Mechanism::RsaX509 | Mechanism::RsaPkcs(..) | Mechanism::RsaPkcsOaep(..) | Mechanism::RsaPkcsPss(..) => {
                 if let ObjectKind::RsaPublicKey(pem) = key_obj.kind() {
                     crypto::Pkey::from_private_pem(pem.as_str()).map_err(Error::CryptoError)
                 } else {

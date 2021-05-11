@@ -106,6 +106,7 @@ pub struct CkRawMechanism {
 }
 pub trait MechParams {}
 impl MechParams for pkcs11::CK_RSA_PKCS_PSS_PARAMS {}
+impl MechParams for pkcs11::CK_RSA_PKCS_OAEP_PARAMS {}
 
 impl CkRawMechanism {
     pub unsafe fn from_raw_ptr_unchecked(ptr: *mut pkcs11::CK_MECHANISM) -> Self {
